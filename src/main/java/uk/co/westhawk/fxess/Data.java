@@ -59,14 +59,12 @@ public class Data {
             System.exit(1);
         }
     }
-    private final HttpClient client;
     private String devId;
     private String token;
 
     Data(String user, String pass) {
         this.user = user;
         this.pass = pass;
-        client = HttpClient.newHttpClient();
     }
 
     void fetchToken() {
@@ -126,6 +124,8 @@ public class Data {
                 .POST(HttpRequest.BodyPublishers.ofString(body));
 
         HttpRequest request = bu.build();
+        var client = HttpClient.newHttpClient();
+
         HttpResponse<String> response
                 = client.send(request, HttpResponse.BodyHandlers.ofString());
         int status = response.statusCode();
@@ -166,6 +166,8 @@ public class Data {
                 .POST(HttpRequest.BodyPublishers.ofString(body));
 
         HttpRequest request = bu.build();
+        var client = HttpClient.newHttpClient();
+
         HttpResponse<String> response
                 = client.send(request, HttpResponse.BodyHandlers.ofString());
         int status = response.statusCode();
@@ -203,6 +205,8 @@ public class Data {
                 .header("Origin", "https://www.foxesscloud.com")
                 .header("token", token)
                 .GET();
+
+        var client = HttpClient.newHttpClient();
 
         HttpRequest request = bu.build();
         HttpResponse<String> response

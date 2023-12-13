@@ -40,8 +40,6 @@ public class NextSun {
         }
     }
 
-    private final HttpClient client;
-
     public final static void main(String[] argc) {
         Log.setLevel(Log.DEBUG);
 
@@ -72,7 +70,6 @@ public class NextSun {
     //https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=60.10&lon=9.58   
     public NextSun(Double lat, Double lon) {
         uri = String.format("https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=%3.2f&lon=%3.2f", lat, lon);
-        client = HttpClient.newHttpClient();
     }
     List<String> suncache = null;
     private Instant expires;
@@ -92,6 +89,8 @@ public class NextSun {
                     .GET();
 
             HttpRequest request = bu.build();
+            var client = HttpClient.newHttpClient();
+
             HttpResponse<String> response
                     = client.send(request, HttpResponse.BodyHandlers.ofString());
             int status = response.statusCode();
@@ -110,7 +109,7 @@ public class NextSun {
             Log.debug("Http status :" + status);
             Log.debug("response body :" + response.body());
             DocumentContext jsonContext = JsonPath.parse(response.body());
-            suncache = jsonContext.read("$.properties.timeseries[?((@.data.next_1_hours) && @.data.next_1_hours.summary.symbol_code in ['fair_day','clearsky_day'])].time");
+            suncache = jsonContext.read("$.properties.timeseries[?((@.data.next_1_hours) && @.data.next_1_hours.summary.symbol_code in ['clearsky_day'])].time");
             Log.info("sun count " + suncache.size());
         } else {
             Log.info("Using cached weather");

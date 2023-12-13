@@ -117,7 +117,8 @@ public class App extends Application {
                 });
             } catch (IOException | InterruptedException x) {
                 Log.error("problen with getting data " + x.getMessage());
+                x.printStackTrace();
             }
-        }, 0, 10, TimeUnit.MINUTES);
+        }, 0, 5, TimeUnit.MINUTES);
     }
 }
