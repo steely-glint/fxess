@@ -38,6 +38,31 @@ public class NextSun {
             return ((starts != null) && (ends != null)) ? "+" + starts + "(" + (ends - starts) + "hrs)"
                     : "no sun.";
         }
+
+        public SunRange extend(Long v) {
+            if (starts == null) {
+                starts = v;
+                ends = v + 1;
+            } else if (Objects.equals(v, ends)) {
+                ends = v + 1;
+            }
+            return this;
+        }
+
+        public SunRange extend(SunRange b) {
+            Log.info("combining " + this + " into " + b);
+            if (starts < b.starts) {
+                if (Objects.equals(ends, b.starts)) {
+                    ends = b.ends;
+                }
+                return this;
+            } else {
+                if (Objects.equals(b.ends, starts)) {
+                    b.ends = ends;
+                }
+                return b;
+            }
+        }
     }
 
     public final static void main(String[] argc) {
@@ -115,22 +140,13 @@ public class NextSun {
             Log.info("Using cached weather");
         }
 
-        List<Long> when = suncache.stream().map((ts) -> now.until(Instant.parse(ts), ChronoUnit.HOURS))
-                .collect(Collectors.toList());
-        SunRange ret = new SunRange();
-
-        ListIterator<Long> lit = when.listIterator();
-        while (lit.hasNext()) {
-            Long v = lit.next();
-            if (ret.starts == null) {
-                ret.starts = v;
-                ret.ends = v + 1;
-            }
-            if (Objects.equals(v, ret.ends)) {
-                ret.ends = v + 1;
-            }
-        }
-
-        return ret;
+        SunRange r = suncache.stream()
+                .map((ts) -> now.until(Instant.parse(ts), ChronoUnit.HOURS))
+                .filter((u) -> u >= 0)
+                .reduce(new SunRange(),
+                        (ret, v) -> ret.extend(v),
+                        (a, b) -> a.extend(b)  
+                );
+        return r;
     }
 }

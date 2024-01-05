@@ -17,6 +17,10 @@ import java.util.List;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -26,6 +30,26 @@ public class Data {
 
     private final String user;
     private final String pass;
+
+    private String buildBodyForm(String user, String pass) {
+        Map<String, String> formData = new HashMap<>();
+        formData.put("user", user);
+        formData.put("password", pass);
+        return getFormDataAsString(formData);
+    }
+
+    private static String getFormDataAsString(Map<String, String> formData) {
+        StringBuilder formBodyBuilder = new StringBuilder();
+        for (Map.Entry<String, String> singleEntry : formData.entrySet()) {
+            if (formBodyBuilder.length() > 0) {
+                formBodyBuilder.append("&");
+            }
+            formBodyBuilder.append(URLEncoder.encode(singleEntry.getKey(), StandardCharsets.UTF_8));
+            formBodyBuilder.append("=");
+            formBodyBuilder.append(URLEncoder.encode(singleEntry.getValue(), StandardCharsets.UTF_8));
+        }
+        return formBodyBuilder.toString();
+    }
 
     class Battery {
 
@@ -69,7 +93,7 @@ public class Data {
 
     void fetchToken() {
         try {
-            String body = buildBody(user, pass);
+            String body = buildBodyForm(user, pass);
             token = getToken(body);
             Log.debug("Token is " + token);
             if (token != null) {
@@ -106,21 +130,29 @@ public class Data {
     private String buildBody(String user, String pass) {
         //     credentials = {'user': username, 'password': hashlib.md5(password.encode()).hexdigest()}
         String creds = hex_md5(pass);
-        String body = "{\"user\":\"" + user + "\",\"password\":\"" + creds + "\"}";
+        //String body = "{\"user\":\"" + user + "\",\"password\":\"" + creds + "\"}";
+        String body = "user=" + user + "&password=" + creds;
         Log.debug("body is :" + body);
         return body;
     }
 
     private String getToken(String body) throws Exception {
         String uri = "https://www.foxesscloud.com/c/v0/user/login";
+        Log.debug("body is :" + body);
 
         HttpRequest.Builder bu = HttpRequest.newBuilder()
                 .uri(URI.create(uri))
                 .timeout(Duration.ofSeconds(10))
                 .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15")
                 .header("lang", "en")
-                .header("Content-Type", "application/json;charset=UTF-8")
-                .header("Origin", "https://www.foxesscloud.com")
+                .header("Accept", "application/json, text/plain, */*")
+                .header("sec-ch-ua-platform", "macOS")
+                .header("Sec-Fetch-Site", "same-origin")
+                .header("Sec-Fetch-Mode", "cors")
+                .header("Sec-Fetch-Dest", "empty")
+                .header("Referer", "https://www.foxesscloud.com/bus/device/inverterDetail?id=xyz&flowType=1&status=1&hasPV=true&hasBattery=false")
+                .header("Accept-Language", "en-US;q=0.9,en;q=0.8,de;q=0.7,nl;q=0.6")
+                .header("X-Requested-With", "XMLHttpRequest")
                 .POST(HttpRequest.BodyPublishers.ofString(body));
 
         HttpRequest request = bu.build();
