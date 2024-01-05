@@ -34,7 +34,7 @@ public class Data {
     private String buildBodyForm(String user, String pass) {
         Map<String, String> formData = new HashMap<>();
         formData.put("user", user);
-        formData.put("password", pass);
+        formData.put("password", hex_md5(pass));
         return getFormDataAsString(formData);
     }
 
@@ -55,8 +55,9 @@ public class Data {
 
         Integer soc;
         Double power;
-        Integer temperature;
+        Double temperature;
 
+        @Override
         public String toString() {
             return "Battery state:" + soc + "% power:" + power + "kw temp:" + temperature + "c";
         }
@@ -125,15 +126,6 @@ public class Data {
             ret.append(cmap[in[i] & 0x0f]);
         }
         return ret.toString();
-    }
-
-    private String buildBody(String user, String pass) {
-        //     credentials = {'user': username, 'password': hashlib.md5(password.encode()).hexdigest()}
-        String creds = hex_md5(pass);
-        //String body = "{\"user\":\"" + user + "\",\"password\":\"" + creds + "\"}";
-        String body = "user=" + user + "&password=" + creds;
-        Log.debug("body is :" + body);
-        return body;
     }
 
     private String getToken(String body) throws Exception {
@@ -254,7 +246,10 @@ public class Data {
                             Log.debug("\t" + k + ":" + v);
                         }
                     });
-            DocumentContext jsonContext = JsonPath.parse(response.body());
+            String resp = response.body();
+            Log.debug("battery info is " + resp);
+
+            DocumentContext jsonContext = JsonPath.parse(resp);
             Log.debug(bat.toString());
 
             bat.soc = jsonContext.read("$.result.soc");
@@ -263,7 +258,7 @@ public class Data {
             bat.power = jsonContext.read("$.result.power");
             Log.debug(bat.toString());
 
-            //bat.temperature = jsonContext.read("$.result.temperature");
+            bat.temperature = jsonContext.read("$.result.temperature");
             Log.debug(bat.toString());
         } else {
             token = null;

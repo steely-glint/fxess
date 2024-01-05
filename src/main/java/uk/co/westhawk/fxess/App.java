@@ -107,12 +107,12 @@ public class App extends Application {
         NextSun ns = new NextSun(Double.valueOf(lat), Double.valueOf(lon));
         ex.scheduleAtFixedRate(() -> {
             try {
-                //var bat = data.getBattery();
-                //Log.debug("bat " + bat.toString());
+                var bat = data.getBattery();
+                Log.debug("bat " + bat.toString());
                 var s = ns.getSuns();
                 Platform.runLater(() -> {
-                    //meter.setValue(bat.soc);
-                    //charge.setValue(bat.power);
+                    meter.setValue(bat.soc);
+                    charge.setValue(bat.power);
                     sun.setText(s.toString());
                 });
             } catch (IOException | InterruptedException x) {
