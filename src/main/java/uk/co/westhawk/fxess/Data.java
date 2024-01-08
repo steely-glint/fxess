@@ -181,7 +181,7 @@ public class Data {
         String body = "{\"pageSize\": 100, \"currentPage\": 1, \"total\": 0, \"queryDate\": {\"begin\": 0, \"end\":0} }";
         HttpRequest.Builder bu = HttpRequest.newBuilder()
                 .uri(URI.create(uri))
-                .timeout(Duration.ofSeconds(10))
+                .timeout(Duration.ofSeconds(30))
                 .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15")
                 .header("lang", "en")
                 .header("Content-Type", "application/json;charset=UTF-8")
@@ -229,13 +229,18 @@ public class Data {
                 .header("Origin", "https://www.foxesscloud.com")
                 .header("token", token)
                 .GET();
-
-        var client = HttpClient.newHttpClient();
-
-        HttpRequest request = bu.build();
-        HttpResponse<String> response
-                = client.send(request, HttpResponse.BodyHandlers.ofString());
-        int status = response.statusCode();
+        int status = 0;
+        HttpResponse<String> response;
+        try {
+            var client = HttpClient.newHttpClient();
+            HttpRequest request = bu.build();
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            status = response.statusCode();
+        } catch (IOException | InterruptedException x) {
+            token = null;
+            devId = null;
+            throw x;
+        }
         Log.debug("Http status :" + status);
 
         if ((status >= 200) && (status < 300)) {

@@ -76,9 +76,7 @@ public class App extends Application {
         var scene = new Scene(stack, w, h);
         stage.setScene(scene);
         stage.show();
-        new Thread(() -> {
-            startStats();
-        }).start();
+        startStats();
     }
 
     public static void main(String[] argv) {
@@ -108,14 +106,14 @@ public class App extends Application {
         ex.scheduleAtFixedRate(() -> {
             try {
                 var bat = data.getBattery();
-                Log.debug("bat " + bat.toString());
+                Log.info("bat " + bat.toString());
                 var s = ns.getSuns();
                 Platform.runLater(() -> {
                     meter.setValue(bat.soc);
                     charge.setValue(bat.power);
                     sun.setText(s.toString());
                 });
-            } catch (IOException | InterruptedException x) {
+            } catch (Throwable x) {
                 Log.error("problen with getting data " + x.getMessage());
                 x.printStackTrace();
             }
